@@ -27,7 +27,7 @@ namespace backend.Models
 
         public UserDao() { }
 
-        public UserDao(UserDto userDto) =>
+        public UserDao(UserDto userDto) => 
             (NickName, PhoneNumber, CountryResidence, Avatar) = (userDto.NickName, userDto.PhoneNumber, userDto.CountryResidence, userDto.Avatar);
 
     }

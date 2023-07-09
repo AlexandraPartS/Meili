@@ -2,126 +2,97 @@
 using Microsoft.EntityFrameworkCore;
 using backend.Data;
 using backend.Models;
+using backend.Interfaces;
+//using backend.Services;
+using backend.Infrastructure;
 
 namespace backend.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
     [Produces("application/json")]
-    public class UserController : ControllerBase
+    public class UserController : Controller
     {
-        private readonly UserContext _context;
-
-        public UserController(UserContext context)
+        IUserService userService;
+        public UserController(IUserService serv)
         {
-            _context = context;
+            userService = serv;
         }
 
         // GET: api/User
         [HttpGet]
-        [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        //public async Task<IEnumerable<UserDto>> Get()
         public async Task<ActionResult<IEnumerable<UserDto>>> Get()
         {
-            if (_context.Users == null)
+            try
             {
-                return NotFound();
+                return Ok(await userService.GetUsers());
             }
-            return await _context.Users.Where(x => x.IsDeleted == false).Select(x => ItemToDTO(x)).ToListAsync().ConfigureAwait(false);
+            catch (ValidationException ex)
+            {
+                ModelState.AddModelError(ex.Property, ex.Message);
+                return NotFound(ModelState);
+            }
         }
 
         // GET: api/User/5
         [HttpGet("{userId:long}")]
-        [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<ActionResult<UserDto>> GetUser(long userId)
         {
-            if (_context.Users == null)
+            try
             {
-                return NotFound();
+                var user = await userService.GetUser(userId);
+                return user;
             }
-            var user = await _context.Users.FindAsync(userId).ConfigureAwait(false);
-
-            if (user == null || user.IsDeleted) 
+            catch(ValidationException ex)
             {
-                return NotFound();
+                ModelState.AddModelError(ex.Property, ex.Message);
+                return NotFound(ModelState);
             }
-
-            return ItemToDTO(user);
         }
 
         // PUT: api/User/5
         [HttpPut("{id}")]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
-        [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public async Task<IActionResult> PutUserDto(long id, UserDto userDto)
+        public async Task<IActionResult> PutUserDto(UserDto userDto)
         {
-
             if (ModelState.IsValid)
             {
-                if (id != userDto.Id)
-                {
-                    return BadRequest();
-                }
-
-                var user = await _context.Users.FindAsync(id).ConfigureAwait(false);
-
-                if (user == null)
-                {
-                    return NotFound();
-                }
-                
-                _context.Users.Attach(user);
-                SetUserDaoModifiedPropValue(user, userDto);
-
-                try
-                {
-                    await _context.SaveChangesAsync().ConfigureAwait(false);
-                }
-                catch (DbUpdateConcurrencyException) when (!IsUserExists(id))
-                {
-                    return NotFound();
-                }
-
+                await userService.UpdateUser(userDto);
                 return NoContent();
             }
-
-            return BadRequest(ModelState);
-
+            return NotFound(ModelState);
         }
 
         // POST: api/User
         [HttpPost]
         [ProducesResponseType(StatusCodes.Status201Created)]
-        [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public async Task<ActionResult<UserDto>> Create([FromBody] UserDto userDto)
+        public async Task<ActionResult<UserDto>> Create(UserDto userDto)
         {
-            if (_context.Users == null)
-            {
-                return NotFound();
-            }
-
             if (ModelState.IsValid)
             {
-                if (_context.Users.Any(i => i.PhoneNumber == userDto.PhoneNumber))
+                try
                 {
-                    ModelState.AddModelError(nameof(userDto.PhoneNumber), "The Phone number is already in use."); //To change
-                    return BadRequest(ModelState);
+                    var user = await userService.CreateUser(userDto);
+                    return CreatedAtAction(
+                                nameof(Create),
+                                new { id = user.Id },
+                                user);
                 }
-
-                var user = new UserDao(userDto);
-                _context.Users.Add(user);
-                await _context.SaveChangesAsync().ConfigureAwait(false);
-
-                return CreatedAtAction(
-                    nameof(Create),
-                    new { id = user.Id }, 
-                    ItemToDTO(user));
+                catch (ValidationException ex)
+                {
+                    ModelState.AddModelError(ex.Property, ex.Message);
+                    return NotFound(ModelState);
+                }
             }
             else
-            return BadRequest(ModelState);
+            return NotFound(ModelState);
         }
 
         // DELETE: api/User/5
@@ -130,45 +101,22 @@ namespace backend.Controllers
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<IActionResult> Delete(long userId)
         {
-            if (_context.Users == null)
+            try
             {
-                return NotFound();
+                await userService.DeleteUser(userId);
+                return NoContent();
             }
-
-            var user = await _context.Users.FindAsync(userId).ConfigureAwait(false);
-            if (user == null)
+            catch(ValidationException ex)
             {
-                return NotFound();
+                ModelState.AddModelError(ex.Property, ex.Message);
+                return NotFound(ModelState);
             }
-            
-            user.IsDeleted = true;   
-            await _context.SaveChangesAsync().ConfigureAwait(false);
-
-            return NoContent();
         }
 
-        private bool IsUserExists(long id)
+        protected override void Dispose(bool disposing)
         {
-            return (_context.Users?.Any(e => e.Id == id)).GetValueOrDefault();
-        }
-
-        private static UserDto ItemToDTO(UserDao user) => new UserDto(user);
-            
-        private static void SetUserDaoModifiedPropValue(UserDao user, UserDto userDto)
-        {
-            foreach(var propDao in typeof(UserDao).GetProperties())
-            {
-                foreach (var prop in typeof(UserDto).GetProperties())
-                {
-                    if (propDao.Name == prop.Name)
-                    {
-                        if (prop.GetValue(userDto) != propDao.GetValue(user))
-                        {
-                            propDao.SetValue(user, prop.GetValue(userDto));
-                        }
-                    }
-                }
-            }
+            userService.Dispose();
+            base.Dispose(disposing);
         }
     }
 }
