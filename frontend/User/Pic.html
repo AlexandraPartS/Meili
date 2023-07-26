@@ -31,7 +31,7 @@
 <body>
     <div class="alert alert-success" style="margin:20px;padding:15px;height:50px; text-align:center;">Используем NPM</div>
 
-    <h2>Users List</h2>
+    <!--<h2>Users List</h2>
     <table>
         <tr>
             <th>Id</th>
@@ -41,36 +41,28 @@
             <th></th>
         </tr>
         <tbody id="usersList"></tbody>
-    </table>
+    </table>-->
 
-    <br/>
+    <br />
 
-    <h3>Create new user</h3>
-    <form action="javascript:void(0);" method="POST" onsubmit="addItem()" enctype="multipart/form-data">
-        <label>NickName:</label><br />
-        <input id="userName" name='NickName' /><br />
-        <label>PhoneNumber:</label><br />
-        <input id="userTel" type='text' name='PhoneNumber' /><br />
-        <input id="saveBtn" type='submit' value='Add' />
-        <input id="resetBtn" type='submit' value="Reset" />
+    <h3>Upload picture</h3>
+    <form id="formElem" onsubmit="loadPic()" action="javascript:void(0);" method="POST" enctype="multipart/form-data">
+        <!--<form action="javascript:void(0);" method="POST" onsubmit="loadPic()" enctype="multipart/form-data">-->
+        <!--<label>Picture:</label><br />-->
+        <input type="text" name="firstName" value="John">
+        <input type="text" name="LastName" value="Smith">
+        <input id="userAvatar" name='avatar' type="file" accept="image/*" /><br />
+        <input id="saveBtn" type='submit' value='Load' />
+        <!--<input id="resetBtn" type='submit' value="Reset" />-->
     </form>
+    <div  id="fileInfo"></div>
 
-    <div id="editForm">
-        <h3>Edit</h3>
-        <form action="javascript:void(0);" onsubmit="updateItem()">
-            <input type="hidden" id="edit-id">
-            <input type="text" id="edit-name">
-            <input type="text" id="edit-phoneNumber">
-            <input type="submit" value="Save">
-            <a onclick="closeInput()" aria-label="Close">&#10006;</a>
-        </form>
-    </div>
-
-    <script src="../js/userpage.js"></script>
+    <script src="../js/pic.js"></script>
     <script type="text/javascript">
-        getItems();
+        getItem();
     </script>
-    
+    <script>
+    </script>
     <script src="/node_modules/jquery/dist/jquery.js"></script>
     <script src="/node_modules/bootstrap/dist/js/bootstrap.js"></script>
 </body>

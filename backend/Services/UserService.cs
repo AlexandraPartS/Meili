@@ -3,146 +3,124 @@ using backend.Models;
 using backend.Infrastructure;
 using backend.Data;
 using Microsoft.EntityFrameworkCore;
+using System.Data;
+using AutoMapper;
 
 namespace backend.Services
 {
     public class UserService : IUserService
     {
-        private readonly UserContext _dbcontext;
+        private readonly DataStorage<UserDao> _dataStorage;
 
-        public UserService(UserContext context)
+        public UserService(DataStorage<UserDao> dataStorage)
         {
-            _dbcontext = context;
+            _dataStorage = dataStorage;
         }
 
         public async Task<UserDto> CreateUser(UserDto userDto)
         {
-            //Validation1
-            if (_dbcontext.Users == null)
+            try
             {
-                throw new ValidationException("Database is not available.", ""); 
+                var user = ItemToDAO(userDto);
+                await _dataStorage.Save(user);
+                return ItemToDTO(user);
             }
-            //Validation2
-            if (_dbcontext.Users.Any(i => i.PhoneNumber == userDto.PhoneNumber))
+            catch
             {
-                throw new ValidationException("The Phone number is already in use.", "PhoneNumber"); 
+                throw new ValidationException("The Login is already in use.", "NickName");
             }
-
-            var user = new UserDao(userDto);
-            _dbcontext.Users.Add(user);
-            await _dbcontext.SaveChangesAsync().ConfigureAwait(false);
-
-            return ItemToDTO(user);
         }
 
         public async Task<IEnumerable<UserDto>> GetUsers()
         {
-            //Validation1
-            if (_dbcontext.Users == null)
-            {
-                throw new ValidationException("Database is not available.", "");
-            }
-
-            return await _dbcontext.Users.Where(x => x.IsDeleted == false)
+            return (await _dataStorage.Get())
+                .Where(x => x.IsDeleted == false)
                 .Select(x => ItemToDTO(x))
-                .ToListAsync()
-                .ConfigureAwait(false);
+                .ToList();
         }
 
         public async Task<UserDto> GetUser(long id)
         {
-            //Validation1
             if (id < 0)
             {
                 throw new ValidationException("Invalid value of Id.", "Id");
             }
-            //Validation2
-            if (_dbcontext.Users == null)
-            {
-                throw new ValidationException("Database is not available.", "");
-            }
-
-            var user = await _dbcontext.Users.FindAsync(id).ConfigureAwait(false);
-            //Validation3
-            if (user == null)
-            {
-                throw new ValidationException("User with Id not found.", "Id");
-            }
-            //Validation4
-            if (user.IsDeleted)
-            {
-                throw new ValidationException("User deleted.", "IsDeleted");
-            }
-
+            var user = await _dataStorage.Get(id);
+            ValidationUser(user);
             return ItemToDTO(user);
         }
 
         public async Task UpdateUser(UserDto userDto)
         {
             var id = userDto.Id;
-            var user = await _dbcontext.Users.FindAsync(id).ConfigureAwait(false);
-            //Validation1
-            if (user.IsDeleted)
-            {
-                throw new ValidationException("User deleted.", "IsDeleted");
-            }
-
-            SetItemDAONewPropValue(user, userDto);
-
-            try
-            {
-                await _dbcontext.SaveChangesAsync().ConfigureAwait(false);
-            }
-            catch (DbUpdateConcurrencyException) when (!IsUserExists(id))
-            {
-                throw new ValidationException("User deleted.", "IsDeleted");
-            }
+            var user = await _dataStorage.Get(id);
+            ValidationUser(user);
+            MapItemToDAO(userDto, user);
+            await UpdateUserDataAndCatchExceptions(user, id);
         }
 
         async Task IUserService.DeleteUser(long id)
         {
-            if (_dbcontext.Users == null)
-            {
-                throw new ValidationException("Database is not available.", "");
-            }
-
-            var user = await _dbcontext.Users.FindAsync(id).ConfigureAwait(false);
-            if (user == null)
-            {
-                throw new ValidationException("User with Id not found.", "Id");
-            }
-
+            var user = await _dataStorage.Get(id);
+            ValidationUser(user);
             user.IsDeleted = true;
-            await _dbcontext.SaveChangesAsync().ConfigureAwait(false);
+            await UpdateUserDataAndCatchExceptions(user, id);
+        }
+
+        public async Task UpdateUserDataAndCatchExceptions(UserDao user, long id)
+        {
+            try
+            {
+                await _dataStorage.Update(user);
+            }
+            catch (DbUpdateConcurrencyException) when (!IsUserExists(id))
+            {
+                throw new ObjectNotFoundException("User is not found.", "");
+            }
+            catch(DbUpdateException)
+            {
+                throw new ValidationException("The Login is already in use.", "NickName");
+            }
         }
 
         public void Dispose()
         {
-            _dbcontext.Dispose();
+            _dataStorage.Dispose();
         }
 
-
-        private static UserDto ItemToDTO(UserDao user) => new UserDto(user);
-
-        private bool IsUserExists(long id)
+        private static UserDto ItemToDTO(UserDao user) 
         {
-            return (_dbcontext.Users?.Any(e => e.Id == id)).GetValueOrDefault();
+            var config = new MapperConfiguration(cfg => cfg.CreateMap<UserDao, UserDto>());
+            var mapper = new Mapper(config);
+            UserDto _userDto = mapper.Map<UserDao, UserDto>(user);
+            return _userDto;
         }
 
-        private static UserDao SetItemDAONewPropValue(UserDao user, UserDto userDto)
+        private static UserDao ItemToDAO(UserDto userDto) 
         {
-            foreach (var propDao in typeof(UserDao).GetProperties())
+            var config = new MapperConfiguration(cfg => cfg.CreateMap<UserDto, UserDao>());
+            var mapper = new Mapper(config);
+            UserDao _user = mapper.Map<UserDto,UserDao>(userDto);
+            return _user;
+        }
+        private static void MapItemToDAO(UserDto userDto, UserDao user) 
+        {
+            var config = new MapperConfiguration(cfg => cfg.CreateMap<UserDto, UserDao>());
+            var mapper = new Mapper(config);
+            mapper.Map(userDto, user);
+        }
+
+        private  bool IsUserExists(long id)
+        {
+            return _dataStorage.Get(id) != null;
+        }
+
+        public void ValidationUser(UserDao user)
+        {
+            if (user == null || user.IsDeleted)
             {
-                foreach (var propDto in typeof(UserDto).GetProperties())
-                {
-                    if (propDao.Name == propDto.Name)
-                    {
-                        propDao.SetValue(user, propDto.GetValue(userDto));
-                    }
-                }
+                throw new ObjectNotFoundException("User is not found.", "");
             }
-            return user;
         }
-
     }
 }

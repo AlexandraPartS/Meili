@@ -1,4 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc.ModelBinding;
+using Microsoft.EntityFrameworkCore;
+using System.ComponentModel.DataAnnotations;
 
 namespace backend.Models
 {
@@ -10,10 +12,12 @@ namespace backend.Models
         public long Id { get; init; }
 
         [BindRequired]
-        public string NickName { get; set; } = "";
+        [StringLength(100)]
+        public string NickName { get; set; } = null!;
 
         [BindRequired]
-        public string PhoneNumber { get; set; } = "";
+        [Phone]
+        public string PhoneNumber { get; set; } = null!;
         public string? CountryResidence { get; set; }
         public string? LocalCurrency { get; set; }
         public string? Avatar { get; set; }

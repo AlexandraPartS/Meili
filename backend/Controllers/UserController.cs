@@ -3,7 +3,6 @@ using Microsoft.EntityFrameworkCore;
 using backend.Data;
 using backend.Models;
 using backend.Interfaces;
-//using backend.Services;
 using backend.Infrastructure;
 
 namespace backend.Controllers
@@ -13,22 +12,21 @@ namespace backend.Controllers
     [Produces("application/json")]
     public class UserController : Controller
     {
-        IUserService userService;
+        private IUserService _userService;
         public UserController(IUserService serv)
         {
-            userService = serv;
+            _userService = serv;
         }
 
         // GET: api/User
         [HttpGet]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        //public async Task<IEnumerable<UserDto>> Get()
         public async Task<ActionResult<IEnumerable<UserDto>>> Get()
         {
             try
             {
-                return Ok(await userService.GetUsers());
+                return Ok(await _userService.GetUsers().ConfigureAwait(false));
             }
             catch (ValidationException ex)
             {
@@ -45,10 +43,15 @@ namespace backend.Controllers
         {
             try
             {
-                var user = await userService.GetUser(userId);
+                var user = await _userService.GetUser(userId).ConfigureAwait(false);
                 return user;
             }
             catch(ValidationException ex)
+            {
+                ModelState.AddModelError(ex.Property, ex.Message);
+                return NotFound(ModelState);
+            }
+            catch(ObjectNotFoundException ex)
             {
                 ModelState.AddModelError(ex.Property, ex.Message);
                 return NotFound(ModelState);
@@ -63,8 +66,21 @@ namespace backend.Controllers
         {
             if (ModelState.IsValid)
             {
-                await userService.UpdateUser(userDto);
-                return NoContent();
+                try
+                {
+                    await _userService.UpdateUser(userDto).ConfigureAwait(false);
+                    return NoContent();
+                }
+                catch (ValidationException ex)
+                {
+                    ModelState.AddModelError(ex.Property, ex.Message);
+                    return NotFound(ModelState);
+                }
+                catch (ObjectNotFoundException ex)
+                {
+                    ModelState.AddModelError(ex.Property, ex.Message);
+                    return NotFound(ModelState);
+                }
             }
             return NotFound(ModelState);
         }
@@ -79,7 +95,7 @@ namespace backend.Controllers
             {
                 try
                 {
-                    var user = await userService.CreateUser(userDto);
+                    var user = await _userService.CreateUser(userDto).ConfigureAwait(false);
                     return CreatedAtAction(
                                 nameof(Create),
                                 new { id = user.Id },
@@ -92,7 +108,9 @@ namespace backend.Controllers
                 }
             }
             else
-            return NotFound(ModelState);
+            {
+                return NotFound(ModelState);
+            }
         }
 
         // DELETE: api/User/5
@@ -103,7 +121,7 @@ namespace backend.Controllers
         {
             try
             {
-                await userService.DeleteUser(userId);
+                await _userService.DeleteUser(userId).ConfigureAwait(false);
                 return NoContent();
             }
             catch(ValidationException ex)
@@ -115,7 +133,7 @@ namespace backend.Controllers
 
         protected override void Dispose(bool disposing)
         {
-            userService.Dispose();
+            _userService.Dispose();
             base.Dispose(disposing);
         }
     }

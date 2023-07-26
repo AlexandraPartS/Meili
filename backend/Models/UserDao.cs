@@ -1,12 +1,14 @@
 ﻿using Microsoft.AspNetCore.Mvc.ModelBinding;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel;
+using Microsoft.EntityFrameworkCore;
 
 namespace backend.Models
 {
     /// <summary>
     /// The property names of models UserDao and UserDto must be identical
     /// </summary>
+    [Index(nameof(NickName), IsUnique = true)]
     public class UserDao
     {
         public long Id { get; init; }
@@ -24,11 +26,6 @@ namespace backend.Models
 
         [DefaultValue(false)]
         public bool IsDeleted { get; set; }
-
-        public UserDao() { }
-
-        public UserDao(UserDto userDto) => 
-            (NickName, PhoneNumber, CountryResidence, Avatar) = (userDto.NickName, userDto.PhoneNumber, userDto.CountryResidence, userDto.Avatar);
 
     }
 }
