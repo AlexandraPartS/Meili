@@ -22,15 +22,5 @@ namespace backend.Models
         public string? LocalCurrency { get; set; }
         public string? Avatar { get; set; }
 
-        public UserDto() { }
-
-        public UserDto(UserDao userDao)
-        {
-            if (!userDao.IsDeleted)
-            {
-                (Id, NickName, PhoneNumber) = (userDao.Id, userDao.NickName, userDao.PhoneNumber);
-            }
-        }
-
     }
 }

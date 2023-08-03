@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <link rel="stylesheet" href="/node_modules/bootstrap/dist/css/bootstrap.min.css"/>
+    <link rel="stylesheet" href="../src/css/user.css" />
+</head>
+<body>
+    <header class="p-3 mb-3 border-bottom">
+        <div class="container">
+            <div class="d-flex flex-wrap align-items-center justify-content-center justify-content-lg-start">
+                <a href="/" class="d-flex align-items-center align-items-start mb-2 mb-lg-0 text-dark text-decoration-none">
+                    <b>TRAVEL</b>
+                    <!--<svg class="bi me-2" width="40" height="32" role="img" aria-label="Bootstrap">
+                        <use xlink:href="#bootstrap"></use>
+                    </svg>-->
+                </a>
+                <ul class="nav col-12 col-lg-auto me-lg-auto mb-2 justify-content-center mb-md-0">
+                    <li>
+                        <a href="#" class="nav-link px-2 link-secondary">Overview</a>
+                    </li>
+                </ul>
+                <div class="dropdown text-end">
+                    <a href="#" class="d-block link-dark text-decoration-none dropdown-toggle show" id="dropdownUser1" data-bs-toggle="dropdown" aria-expanded="true">
+                        <img src="https://github.com/mdo.png" alt="mdo" width="32" height="32" class="rounded-circle" />
+                    </a>
+                    <ul class="dropdown-menu text-small show" aria-labelledby="dropdownUser1" data-popper-placement="bottom-end" style="position: absolute; inset: 0px auto auto 0px; margin: 0px; transform: translate(-112px, 34px);">
+                        <li>
+                            <a class="dropdown-item" href="#">New project</a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </header>
+    <main>
+        <div class="container">
+            <h2>User Data</h2>
+            <div class="col-md-6">
+                <form class="row g-3" id="formData" onsubmit="updateItem()" action="javascript:void(0);" enctype="multipart/form-data">
+                    <div class="col-4 user-photo p-0">
+                        <div class="h-100 w-100">
+                            <div class="user-photo__img-wrap">
+                                <img id="user-photo" alt="user_avatar" class="img-fluid">
+                            </div>
+                            <label for="userAvatar" class="custom-file-upload position-absolute bottom-0 end-0 col-5 h-50">
+                                <div style="opacity:0;" class="text-hide">Choose images to upload</div>
+                                <input id="userAvatar" name='avatar' type="file" class="btn-edit btn" accept="image/*">
+                                <!--name='avatar'-->
+                            </label>
+                            <a onclick="resetAvatar()" value="Reset" aria-label="Close" class="position-absolute start-0">&#10006;</a>
+
+                            <!--<input id="resetAvatar" type='submit' value="Reset" class="btn btn-secondary " />-->
+                        </div>
+                    </div>
+                    <div class="col-sm-8">
+                        <input id="userId" name='Id' type="hidden">
+                        <div class="form-group">
+                            <label class="form-label" for="formGroupExampleInput">NickName</label>
+                            <input type="text" class="form-control" id="userName" name='NickName'>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label" for="formGroupExampleInput">PhoneNumber</label>
+                            <input type="text" class="form-control" id="userTel" name='PhoneNumber'>
+                        </div>
+                    </div>
+                    <div class="col-12">
+                        <button type="submit" class="btn btn-primary mt-5 mb-3">Submit</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </main>
+    <script src="../src/js/user.js"></script>
+    <script type="text/javascript">
+        getItem();
+    </script>
+    <script src="/node_modules/jquery/dist/jquery.js"></script>
+    <script src="/node_modules/bootstrap/dist/js/bootstrap.js"></script>
+</body>
+</html>

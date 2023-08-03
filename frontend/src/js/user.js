@@ -1,5 +1,65 @@
 ﻿const uri = '/api/user';
+const uriid = '/api/user/52';
 let userList = [];
+
+////
+////FOR ONE USER
+////
+
+// Get user
+function getItem() {
+    fetch(uriid)
+        .then(response => response.json())
+        .then(data => _displayItem(data))
+        .catch(error => console.error('Unable to get items.', error));
+}
+
+function _displayItem(data) {
+    document.getElementById("userId").value = `${data.id}`;
+    document.getElementById("userName").value = `${data.nickName}`;
+    document.getElementById("userTel").value = `${data.phoneNumber}`;
+    var avatar = document.getElementById("user-photo");
+    let path = document.createTextNode(data.avatar).data;
+    if (path === 'null') {
+        avatar.src = ``;
+    }
+    else {
+        avatar.src = `..${path}` + `?v=${Math.random()}`;
+    }
+}
+
+function updateItem() {
+    const formElem = document.getElementById("formData");
+    let formData = new FormData(formElem);
+    let id = document.getElementById("userId").value;
+    console.log("Id = "+ id);
+
+
+    fetch(`${uri}/${id}`, {
+        method: 'PUT',
+        body: formData,
+        processData: false,
+        contentType: false
+    })
+        .then(response => response.json())
+        .then((text) => {
+            getItem();
+            //reset();
+        })
+        .catch(error => console.error('Unable to post item.', error));
+}
+
+function resetAvatar() {
+    document.getElementById("user-photo").src = ``;
+}
+
+
+//////////////////////////////////////////////////////////////////
+
+////
+////FOR USERS LIST
+////
+
 
 // Get all users
 function getItems() {
@@ -8,7 +68,6 @@ function getItems() {
         .then(data => _displayItems(data))
         .catch(error => console.error('Unable to get items.', error));
 }
-
 
 // Create new user
 function addItem() {
@@ -45,31 +104,6 @@ function displayEditForm(id) {
     document.getElementById('edit-id').value = item.id;
     document.getElementById('editForm').style.display = 'block';
 }
-function updateItem() {
-
-    const itemId = document.getElementById('edit-id').value;
-
-    const item = {
-        Id: Number(itemId),
-        NickName: document.getElementById('edit-name').value.trim(),
-        PhoneNumber: document.getElementById('edit-phoneNumber').value.trim()
-    };
-
-    fetch(`${uri}/${itemId}`, {
-        method: 'PUT',
-        headers: {
-            'Accept': 'application/json',
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(item)
-    })
-        .then(() => getItems())
-        .catch(error => console.error('Unable to update item.', error));
-
-    closeInput();
-
-    return false;
-}
 
 // Delete user
 function deleteItem(id) {
@@ -81,7 +115,6 @@ function deleteItem(id) {
 }
 
 function _displayItems(data) {
-
     const tBody = document.getElementById('usersList');
     tBody.innerHTML = '';
     const button = document.createElement('button');
@@ -102,6 +135,14 @@ function _displayItems(data) {
         textNode = document.createTextNode(item.phoneNumber);
         td2.appendChild(textNode);
 
+        let td3 = tr.insertCell(3);
+        let img = document.createElement('img');
+        let path = document.createTextNode(item.avatar).data;
+        console.log("My path :" + path);
+        img.style = 'position:inherit;top:10px;left:10px;width:100px';
+        img.src = `..${path}`;
+        td3.appendChild(img);
+
         let editButton = button.cloneNode(false);
         editButton.innerText = 'Edit';
         editButton.setAttribute('onclick', `displayEditForm(${item.id})`);
@@ -110,19 +151,18 @@ function _displayItems(data) {
         deleteButton.innerText = 'Delete';
         deleteButton.setAttribute('onclick', `deleteItem(${item.id})`);
 
-        let td3 = tr.insertCell(3);
-        td3.appendChild(editButton);
-
         let td4 = tr.insertCell(4);
-        td4.appendChild(deleteButton);
-    });
+        td4.appendChild(editButton);
 
+        let td5 = tr.insertCell(5);
+        td5.appendChild(deleteButton);
+    });
     userList = data;
 }
 
 
 // Reset form values
-document.getElementById("resetBtn").addEventListener("click", () => reset());
+//document.getElementById("resetBtn").addEventListener("click", () => reset());
 
 function closeInput() {
     document.getElementById('editForm').style.display = 'none';
@@ -133,3 +173,6 @@ function reset() {
     document.getElementById("userName").value =
     document.getElementById("userTel").value = "";
 }
+
+
+

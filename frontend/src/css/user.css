@@ -1,0 +1,91 @@
+﻿body {
+}
+input[type='submit'], button, [aria-label] {
+    cursor: pointer;
+}
+
+#editForm {
+    display: none;
+}
+
+table {
+    font-family: Arial, sans-serif;
+    border: 1px solid;
+    border-collapse: collapse;
+}
+
+th {
+    background-color: #f8f8f8;
+    padding: 5px;
+}
+
+td {
+    border: 1px solid;
+    padding: 5px;
+}
+
+/*.avatar-block {
+    display: inline-flex;
+    float: left;
+}
+*/
+.user-photo {
+    position: relative;
+    background-image: url(../img/avatar.png);
+    border-radius: 50% 50%;
+    background-size: cover;
+}
+
+.user-photo__img-wrap {
+    display: flex;
+    align-items: center;
+    height: 100%;
+    position: relative;
+    z-index: 1;
+    border-radius: 50%;
+    overflow: hidden;
+}
+
+.user-photo img {
+    width: 100%;
+    height: auto;
+}
+.btn-edit {
+    position: relative;
+    top: 150px;
+    font-family: calibri;
+    width: 150px;
+    padding: 10px;
+    -webkit-border-radius: 5px;
+    -moz-border-radius: 5px;
+    border: 1px dashed #BBB;
+    text-align: center;
+    background-color: #DDD;
+    cursor: pointer;
+}
+.custom-file-upload {
+    border: 1px solid #ccc;
+    display: inline-block;
+    cursor: pointer;
+    background-image: url('..//svg/pencil.svg');
+    background-repeat: no-repeat;
+    background-position: center;
+    background-color: #fff;
+    z-index: 1;
+    border-radius: 50% 50%;
+}
+input[type="file"] {
+    display: none;
+}
+input[type=file]::file-selector-button {
+    border: 2px solid #6c5ce7;
+    padding: .2em .4em;
+    border-radius: .2em;
+    background-color: #a29bfe;
+    transition: 1s;
+}
+
+    input[type=file]::file-selector-button:hover {
+        background-color: #81ecec;
+        border: 2px solid #00cec9;
+    }

@@ -26,6 +26,40 @@
             border: 1px solid;
             padding: 5px;
         }
+        .user-photo {
+            width: 64px;
+            height: 64px;
+            position: relative;
+        }
+        .user-photo__label {
+            transition: opacity .3s ease 0s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: absolute;
+            z-index: 2;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+            background-color: rgba(36,36,36,.3);
+            border-radius: 50%;
+            cursor: pointer;
+            opacity: 0;
+        }
+        .user-photo__img-wrap {
+            display: flex;
+            align-items: center;
+            height: 100%;
+            position: relative;
+            z-index: 1;
+            border-radius: 50%;
+            overflow: hidden;
+        }
+        .user-photo img {
+            width: 100%;
+            height: auto;
+        }
     </style>
 </head>
 <body>
@@ -37,13 +71,14 @@
             <th>Id</th>
             <th>NickName</th>
             <th>PhoneNumber</th>
-            <th></th>
+            <th>Avatar</th>
             <th></th>
         </tr>
         <tbody id="usersList"></tbody>
     </table>
+    <br />
 
-    <br/>
+
 
     <h3>Create new user</h3>
     <form action="javascript:void(0);" method="POST" onsubmit="addItem()" enctype="multipart/form-data">
@@ -54,6 +89,24 @@
         <input id="saveBtn" type='submit' value='Add' />
         <input id="resetBtn" type='submit' value="Reset" />
     </form>
+    <!--//-->
+    <h3>User Avatar Post</h3>
+    <form id="formElem" onsubmit="loadPic()" action="javascript:void(0);" method="POST" enctype="multipart/form-data">
+        <div class="user-photo">
+
+
+            <label class="user-photo__label"></label><br />
+            <div class="user-photo__img-wrap">
+                <img src="../Files/avatar_default.png" alt="альтернативный текст"><br />
+            </div>
+
+            <input id="userAvatar" name='avatar' type="file" accept="image/*"><br />
+            <input id="saveBtn" type='submit' value='Add' />
+            <input id="resetBtn" type='submit' value="Reset" />
+        </div>
+    </form>
+    <!--//-->
+
 
     <div id="editForm">
         <h3>Edit</h3>
@@ -66,11 +119,12 @@
         </form>
     </div>
 
-    <script src="../js/userpage.js"></script>
+    <script src="../src/js/user.js"></script>
+    <script src="../src/js/pic.js"></script>
     <script type="text/javascript">
         getItems();
     </script>
-    
+
     <script src="/node_modules/jquery/dist/jquery.js"></script>
     <script src="/node_modules/bootstrap/dist/js/bootstrap.js"></script>
 </body>
