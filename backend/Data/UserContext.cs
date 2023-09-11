@@ -8,7 +8,6 @@ namespace backend.Data
         public UserContext(DbContextOptions<UserContext> options)
         : base(options)
         {
-            //Database.EnsureCreated();
         }
 
         public DbSet<UserDao> Users { get; set; } = null!;

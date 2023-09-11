@@ -81,11 +81,11 @@
 
 
     <h3>Create new user</h3>
-    <form action="javascript:void(0);" method="POST" onsubmit="addItem()" enctype="multipart/form-data">
+    <form action="javascript:void(0);" method="POST" onsubmit="addItem()">
         <label>NickName:</label><br />
-        <input id="userName" name='NickName' /><br />
+        <input id="NickName" name='NickName' /><br />
         <label>PhoneNumber:</label><br />
-        <input id="userTel" type='text' name='PhoneNumber' /><br />
+        <input id="PhoneNumber" type='text' name='PhoneNumber' /><br />
         <input id="saveBtn" type='submit' value='Add' />
         <input id="resetBtn" type='submit' value="Reset" />
     </form>
@@ -97,17 +97,16 @@
 
             <label class="user-photo__label"></label><br />
             <div class="user-photo__img-wrap">
-                <img src="../Files/avatar_default.png" alt="альтернативный текст"><br />
+                <img src="../Files/avatar.png" alt="альтернативный текст"><br />
             </div>
 
-            <input id="userAvatar" name='avatar' type="file" accept="image/*"><br />
+            <input id="userAvatar" name='userAvatar' type="file" accept="image/*"><br />
             <input id="saveBtn" type='submit' value='Add' />
             <input id="resetBtn" type='submit' value="Reset" />
         </div>
     </form>
-    <!--//-->
 
-
+    <h3>Edit Avatar</h3>
     <div id="editForm">
         <h3>Edit</h3>
         <form action="javascript:void(0);" onsubmit="updateItem()">
@@ -119,8 +118,8 @@
         </form>
     </div>
 
-    <script src="../src/js/user.js"></script>
-    <script src="../src/js/pic.js"></script>
+    <script src="../src/js/userslist.js"></script>
+    <script src="../src/js/picture.js"></script>
     <script type="text/javascript">
         getItems();
     </script>

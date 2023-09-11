@@ -22,7 +22,7 @@ namespace backend.Models
         public string PhoneNumber { get; set; } = null!;
 
         public string? CountryResidence { get; set; }
-        public string? Avatar { get; set; }
+        public string? AvatarRelativePath { get; set; }
 
         [DefaultValue(false)]
         public bool IsDeleted { get; set; }
