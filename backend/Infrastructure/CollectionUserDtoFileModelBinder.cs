@@ -1,11 +1,7 @@
 ﻿using backend.Models;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
-using Microsoft.DotNet.Scaffolding.Shared;
-using Newtonsoft.Json;
 using NuGet.Protocol;
-using System.Web.Http.Controllers;
-using System.Xml.Linq;
+using System.Text.RegularExpressions;
 
 namespace backend.Infrastructure
 {
@@ -26,11 +22,15 @@ namespace backend.Infrastructure
             {
                 return Task.CompletedTask;
             }
-            else if (nickName.Length < 2 || nickName.Length > 25)
+            else if (nickName.Length < 2 || nickName.Length > 128)
             {
                 return Task.CompletedTask;
             }
             if (string.IsNullOrEmpty(phoneNumber))
+            {
+                return Task.CompletedTask;
+            }
+            if (!Regex.IsMatch(phoneNumber, GlobalVariables.RegexPhonePattern))
             {
                 return Task.CompletedTask;
             }
@@ -39,7 +39,7 @@ namespace backend.Infrastructure
             var userDto = new UserDto { Id = id, NickName = nickName, PhoneNumber = phoneNumber };
             if (_files.Count > 0)
             {
-                userDto.AvatarRelativePath = GlobalVariables.AvatarRelativePath;
+                userDto.AvatarRelativePath = GlobalVariables.AvatarRelativePathAndName(id);
             }
             var fields = new Dictionary<string, Microsoft.Extensions.Primitives.StringValues>
             {

@@ -1,7 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using backend.Infrastructure;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
-using Microsoft.AspNetCore.Mvc.RazorPages;
-using Microsoft.EntityFrameworkCore;
 using System.ComponentModel.DataAnnotations;
 
 namespace backend.Models
@@ -14,11 +12,11 @@ namespace backend.Models
         public long Id { get; init; }
 
         [BindRequired]
-        [StringLength(25, MinimumLength = 2, ErrorMessage = "{0} numbers must be between {2} and {1} character in length.")] 
+        [StringLength(128, MinimumLength = 2, ErrorMessage = "{0} numbers must be between {2} and {1} character in length.")] 
         public string NickName { get; set; } = null!;
 
         [BindRequired]
-        [Phone]
+        [RegularExpression(GlobalVariables.RegexPhonePattern, ErrorMessage = "Wrong phone number")]
         public string PhoneNumber { get; set; } = null!;
         public string? CountryResidence { get; set; }
         public string? LocalCurrency { get; set; }

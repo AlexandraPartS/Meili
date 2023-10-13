@@ -1,12 +1,19 @@
-﻿const uri = '/api/user';
-const uriid = '/api/user/52';
-let userList = [];
+﻿const uriapi = '/api/user';
+const uriid = '/api/user/2';
+const nickName = document.getElementById('NickName');
+const phoneNumber = document.getElementById('PhoneNumber');
+const avatarimage = document.getElementById("user-photo");
+const avatarimage_s = document.getElementById("user-photo-s");
+const avatarfile = document.getElementById("userAvatar");
+const submitbtn = document.getElementById("saveBtn");
+let isAvatarChanged = false;
+let userStartData = {
+    NickName: "",
+    PhoneNumber: "",
+};
+const alertdeltatime = 4000;
+const alertdeltatime_s = 500;
 
-////
-////FOR ONE USER
-////
-
-// Get user
 function getItem() {
     fetch(uriid)
         .then(response => response.json())
@@ -16,139 +23,141 @@ function getItem() {
 
 function _displayItem(data) {
     document.getElementById("userId").value = `${data.id}`;
-    document.getElementById("NickName").value = `${data.nickName}`;
-    document.getElementById("PhoneNumber").value = `${data.phoneNumber}`;
-    var avatar = document.getElementById("user-photo");
+    nickName.value = `${data.nickName}`;
+    phoneNumber.value = `${data.phoneNumber}`;
+
     let path = document.createTextNode(data.avatarRelativePath).data;
-    if (path === 'null') {
-        avatar.src = ``;
+    if (path === 'null')
+    {
+        avatarimage.src = ``;
     }
     else {
-        avatar.src = `..${path}` + `?v=${Math.random()}`;
+        avatarimage.src = avatarimage_s.src = `..${path}` + `?v=${Math.random()}`;
     }
+    fillUserStartData(nickName.value, phoneNumber.value);
 }
 
-function updateItem() {
-
-    //var1
+async function updateItem() {
     const formElem = document.getElementById("formData");
     let formData = new FormData(formElem);
     let id = document.getElementById("userId").value;
-    //console.log("Id = " + id);
 
-    formData.forEach(item => {
-        console.log(typeof item + ", " + item + ", ");
+    if (avatarfile.value == "" && avatarfile.files[0] == null && avatarimage.src != '') {
+        let imageBlob = await fetch(avatarimage.src).then(r => r.blob());
+        formData.append("image", imageBlob, "image.png");
+    }
 
-    });
-
-
-    //var2
-    //const id = document.getElementById('userId').value;
-    //const item = {
-    //    Id: Number(id),
-    //    NickName: document.getElementById('NickName').value.trim(),
-    //    PhoneNumber: document.getElementById('PhoneNumber').value.trim()
-    //};
-    //console.log("item = " + item.Id + item.NickName);
-
-    //var3
-    //let formData = new FormData();
-    //let id = document.getElementById("userId").value;
-    ////const id = document.getElementById('userId').value;
-    //const item = {
-    //    Id: Number(id),
-    //    NickName: document.getElementById('NickName').value.trim(),
-    //    PhoneNumber: document.getElementById('PhoneNumber').value.trim()
-    //};
-    //var input = document.getElementById("userAvatar");
-    //var file = input.files[0];
-    //formData.append("postedFile", file);
-    //formData.append("userDto", JSON.stringify(item));
-    ////formData.append("Id", 3);
-
-    formData.forEach(item => {
-        console.log(typeof item + ", " + item + ", " + item.name);
-    });
-
-
-    //fetch(`${uri}`, {
-    fetch(`${uri}/${id}`, {
+    fetch(`${uriapi}/${id}`, {
         method: 'PUT',
-        //body: JSON.stringify(item),
-        body: formData//,
-        //processData: false,
-        //contentType: false,
-    //    headers: {
-    //        'Content-Type': 'multipart/form-data',
-    //        //'Content-Type': 'application/json',
-    //        //'Authorization': `Bearer ${getTokenFromCookie()}`,
-    //        'Accept': 'application/json, application/xml, text/plain, text/html, *.*'
-    //    }
+        body: formData
     })
-        .then(response => response.json())
+        .then(response => {
+            if (response.ok) {
+                return response.json()
+            }
+            throw new Error(response.status);
+        })
         .then((text) => {
             getItem();
-            //reset();
+            reset();
+            setTimeout(alertSuccessTimeout("alert-success"), alertdeltatime_s)
         })
-        .catch(error => console.error('Unable to post item.', error));
+        .catch(error => {
+            console.error('Unable to add item.', error);
+            setTimeout(alertSuccessTimeout("alert-danger"), alertdeltatime_s);
+        });
+}
+
+function fillUserStartData(nickName, phoneNumber){
+    userStartData.NickName = nickName;
+    userStartData.PhoneNumber = phoneNumber;
+}
+
+if (avatarfile) {
+    avatarfile.addEventListener('change', function () {
+        if (!!avatarfile.files[0]) {
+            avatarimage.src = avatarimage_s.src = URL.createObjectURL(avatarfile.files[0]);
+            isAvatarChanged = true;
+            activateSubmitButton();
+        }
+    });
+}
+function resetAvatar() {
+    avatarimage.removeAttribute('src');
+    avatarimage_s.removeAttribute('src');
+    avatarfile.value = "";
+    isAvatarChanged = true;
+    activateSubmitButton();
 }
 
 
-//function updateItem() {
 
-//    let formData = new FormData();
+/// <summary>
+/// Logic for the "Create new user" block of 2 page (userdata.html, userlist.html)
+/// Use variables: nickName, phoneNumber, submitbtn;
+/// </summary>
 
-//    const id = document.getElementById('userId').value;
-//    const item = {
-//        Id: Number(id),
-//        NickName: document.getElementById('NickName').value.trim(),
-//        PhoneNumber: document.getElementById('PhoneNumber').value.trim()
-//    };
-//    formData.append("userDto", JSON.stringify(item));
+function validateDataElement(element) {
+    if (Object.is(element, nickName)) {
+        return (nickName.value.length >= 2 && nickName.value.length <= 128) ? true : false;
+    }
+    if (Object.is(element, phoneNumber)) {
+        let regex = /^\+(?:[\s\-]?[0-9]●?){6,14}[0-9]$/;
+        //let regex = /^\+\d{1,3}[\s\-]?\d{1,14}([\s\-]?\d{1,13})?/;
+        return regex.test(phoneNumber.value) ? true : false;
+    }
+}
+nickName.onblur = phoneNumber.onblur = function () {
+    !validateDataElement(this) ? setErrorState(this) : activateSubmitButton();
+}   
+nickName.onfocus = phoneNumber.onfocus = function(){
+    this.classList.contains('is-invalid') ? this.classList.remove('is-invalid') : null;
+}   
+function setErrorState(element) {
+    element.classList.add('is-invalid');
+    submitbtn.classList.add('disabled');
+}
+function validateData() {
+    return (validateDataElement(nickName) && validateDataElement(phoneNumber)) ? true : false;
+}
 
-//    var input = document.getElementById("userAvatar");
-//    var file = input.files[0];
-//    formData.append("files", file);
-    
-//    console.log("JSON.stringify(item) = " + JSON.stringify(item));
+function activateSubmitButton() {
+    //for userdata page
+    const formElem = !!document.getElementById("formData");
+    if (formElem) {
+        if (isAvatarChanged || userStartData.NickName != nickName.value || userStartData.PhoneNumber != phoneNumber.value) {
+            if (userStartData.NickName != nickName.value || userStartData.PhoneNumber != phoneNumber.value) {
+                if (validateData()) {
+                    submitbtn.classList.remove('disabled');
+                }
+            }
+            else {
+                submitbtn.classList.remove('disabled');
+            }
+        }
+        else {
+            submitbtn.classList.add('disabled');
+        }
+        return;
+    }
+    //for userslist page
+    validateData() ? submitbtn.classList.remove('disabled') : submitbtn.classList.add('disabled');
+};
 
-//    fetch(`${uri}/${id}`, {
-//        method: 'PUT',
-//        body: formData,
-//        processData: false,
-//        contentType: false
-//    })
-//        .then(response => response.json())
-//        .then((text) => {
-//            getItem();
-//            //reset();
-//        })
-//        .catch(error => console.error('Unable to post item.', error));
-//}
 
+submitbtn.addEventListener('click', function (e) {
+    submitbtn.classList.add('disabled');
+});
 
-//function updateItem() {
-
-//    const formElem = document.getElementById("formData");
-//    let formData = new FormData(formElem);
-//    let id = document.getElementById("userId").value; 
-//    console.log("Id = " + id);
-
-//    fetch(`${uri}/${id}`, {
-//        method: 'PUT',
-//        body: formData,
-//        processData: false,
-//        contentType: false
-//    })
-//        .then(response => response.json())
-//        .then((text) => {
-//            getItem();
-//            //reset();
-//        })
-//        .catch(error => console.error('Unable to post item.', error));
-//}
-
-function resetAvatar() {
-    document.getElementById("user-photo").src = ``;
-    document.getElementById("userAvatar").value = "";
+function alertSuccessTimeout(alertmessagetype) {
+    let alertmessage = document.getElementsByClassName("alert " + `${alertmessagetype}`)[0];
+    alertmessage.classList.remove('d-none');
+    setTimeout(() => {
+        alertmessage.classList.add('d-none');
+    }, alertdeltatime);
+}
+function reset() {
+    nickName.value =
+        phoneNumber.value = "";
+    submitbtn.classList.add('disabled');
 }

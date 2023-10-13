@@ -71,6 +71,7 @@ namespace backend.Controllers
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<IActionResult> PutUserDto(UserDto userDto)
         {
+            Console.WriteLine("Usual edit controller");
             if (ModelState.IsValid)
             {
                 try
@@ -99,6 +100,8 @@ namespace backend.Controllers
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<IActionResult> PutUserDto(IFormCollection collection)
         {
+            Console.WriteLine("IFormCollection edit controller");
+
             try
             {
                 UserDto? userDto = JsonConvert.DeserializeObject<UserDto>(collection["userDto"]);
@@ -110,11 +113,12 @@ namespace backend.Controllers
                 {
                     if (collection.Files.Count > 0)
                     {
-                        await _fileService.WriteFile(collection.Files[0]);
+                        await _fileService.CreateIdUserFolderAsync(userDto.Id);
+                        await _fileService.WriteFileAsync(userDto.Id, collection.Files[0]);
                     }
                     else
                     {
-                        _fileService.CleanFolderOfFiles(GlobalVariables.FileStoragePath);
+                        _fileService.CleanFolderOfAvatar(userDto.Id);
                     }
                 }
                 catch (IOException ex)
@@ -152,7 +156,6 @@ namespace backend.Controllers
                 try
                 {
                     var user = await _userService.CreateUser(userDto).ConfigureAwait(false);
-
                     return CreatedAtAction(
                                 nameof(Create),
                                 new { id = user.Id },
@@ -179,6 +182,14 @@ namespace backend.Controllers
             try
             {
                 await _userService.DeleteUser(userId).ConfigureAwait(false);
+                try
+                {
+                    await _fileService.DeleteIdUserFolderAsync(userId);
+                }
+                catch (IOException ex)
+                {
+                    _logger.Log(LogLevel.Warning, ex.ToString());
+                }
                 return NoContent();
             }
             catch(ValidationException ex)

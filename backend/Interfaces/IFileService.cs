@@ -2,8 +2,9 @@
 {
     public interface IFileService
     {
-        Task WriteFile(IFormFile file);
-        Task WriteFiles(IFormFile[] files);
-        void CleanFolderOfFiles(string path);
+        Task WriteFileAsync(long id, IFormFile file);
+        void CleanFolderOfAvatar(long id);
+        Task CreateIdUserFolderAsync(long id);
+        Task DeleteIdUserFolderAsync(long id);
     }
 }

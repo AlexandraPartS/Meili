@@ -1,5 +1,6 @@
 ﻿using backend.Models;
 using Microsoft.EntityFrameworkCore;
+using System.Text.RegularExpressions;
 
 namespace backend.Data
 {
@@ -9,8 +10,8 @@ namespace backend.Data
         : base(options)
         {
         }
-
         public DbSet<UserDao> Users { get; set; } = null!;
         public DbSet<FileModel> Files { get; set; }
+
     }
 }
