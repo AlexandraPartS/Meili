@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 using NuGet.Protocol;
 using System.Text.RegularExpressions;
+//using System.Web.Http.ModelBinding;
 
 namespace backend.Infrastructure
 {
@@ -16,27 +17,16 @@ namespace backend.Infrastructure
 
             var id = (long)Convert.ToDouble(bindingContext.ValueProvider.GetValue("Id").FirstValue);
             var nickName = bindingContext.ValueProvider.GetValue("NickName").FirstValue;
-            var phoneNumber = bindingContext.ValueProvider.GetValue("PhoneNumber").FirstValue;
-
-            if (string.IsNullOrEmpty(nickName))
-            {
-                return Task.CompletedTask;
-            }
-            else if (nickName.Length < 2 || nickName.Length > 128)
-            {
-                return Task.CompletedTask;
-            }
-            if (string.IsNullOrEmpty(phoneNumber))
-            {
-                return Task.CompletedTask;
-            }
-            if (!Regex.IsMatch(phoneNumber, GlobalVariables.RegexPhonePattern))
-            {
-                return Task.CompletedTask;
-            }
+            string phoneNumber = bindingContext.ValueProvider.GetValue("PhoneNumber").FirstValue;
 
             var _files = bindingContext.HttpContext.Request.Form.Files;
-            var userDto = new UserDto { Id = id, NickName = nickName, PhoneNumber = phoneNumber };
+            var userDto = new UserDto
+            {
+                Id = id,
+                NickName = nickName,
+                PhoneNumber = phoneNumber
+            };
+
             if (_files.Count > 0)
             {
                 userDto.AvatarRelativePath = GlobalVariables.AvatarRelativePathAndName(id);

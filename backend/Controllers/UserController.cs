@@ -2,10 +2,8 @@
 using Microsoft.EntityFrameworkCore;
 using backend.Models;
 using backend.Interfaces;
-using backend.Infrastructure;
 using NuGet.Protocol;
 using Newtonsoft.Json;
-using System.Xml.Linq;
 
 namespace backend.Controllers
 {
@@ -31,15 +29,7 @@ namespace backend.Controllers
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<ActionResult<IEnumerable<UserDto>>> Get()
         {
-            try
-            {
-                return Ok(await _userService.GetUsers().ConfigureAwait(false));
-            }
-            catch (ValidationException ex)
-            {
-                ModelState.AddModelError(ex.Property, ex.Message);
-                return NotFound(ModelState);
-            }
+            return Ok(await _userService.GetUsers().ConfigureAwait(false));
         }
 
         // GET: api/User/5
@@ -48,21 +38,8 @@ namespace backend.Controllers
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<ActionResult<UserDto>> GetUser(long userId)
         {
-            try
-            {
-                var user = await _userService.GetUser(userId).ConfigureAwait(false);
-                return user;
-            }
-            catch(ValidationException ex)
-            {
-                ModelState.AddModelError(ex.Property, ex.Message);
-                return NotFound(ModelState);
-            }
-            catch(ObjectNotFoundException ex)
-            {
-                ModelState.AddModelError(ex.Property, ex.Message);
-                return NotFound(ModelState);
-            }
+            var user = await _userService.GetUser(userId).ConfigureAwait(false);
+            return user;
         }
 
         // PUT: api/User/5
@@ -71,26 +48,8 @@ namespace backend.Controllers
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<IActionResult> PutUserDto(UserDto userDto)
         {
-            Console.WriteLine("Usual edit controller");
-            if (ModelState.IsValid)
-            {
-                try
-                {
-                    await _userService.UpdateUser(userDto).ConfigureAwait(false);
-                    return NoContent();
-                }
-                catch (ValidationException ex)
-                {
-                    ModelState.AddModelError(ex.Property, ex.Message);
-                    return NotFound(ModelState);
-                }
-                catch (ObjectNotFoundException ex)
-                {
-                    ModelState.AddModelError(ex.Property, ex.Message);
-                    return NotFound(ModelState);
-                }
-            }
-            return NotFound(ModelState);
+            await _userService.UpdateUser(userDto).ConfigureAwait(false);
+            return NoContent();
         }
 
         // PUT: api/user/5
@@ -100,49 +59,29 @@ namespace backend.Controllers
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<IActionResult> PutUserDto(IFormCollection collection)
         {
-            Console.WriteLine("IFormCollection edit controller");
-
+            UserDto? userDto = JsonConvert.DeserializeObject<UserDto>(collection["userDto"]);
+            if(userDto is null)
+            {
+                throw new ArgumentNullException(nameof(userDto));
+            }
             try
             {
-                UserDto? userDto = JsonConvert.DeserializeObject<UserDto>(collection["userDto"]);
-                if(userDto is null)
+                if (collection.Files.Count > 0)
                 {
-                    throw new ArgumentNullException(nameof(userDto));
+                    await _fileService.CreateIdUserFolderAsync(userDto.Id);
+                    await _fileService.WriteFileAsync(userDto.Id, collection.Files[0]);
                 }
-                try
+                else
                 {
-                    if (collection.Files.Count > 0)
-                    {
-                        await _fileService.CreateIdUserFolderAsync(userDto.Id);
-                        await _fileService.WriteFileAsync(userDto.Id, collection.Files[0]);
-                    }
-                    else
-                    {
-                        _fileService.CleanFolderOfAvatar(userDto.Id);
-                    }
+                    _fileService.CleanFolderOfAvatar(userDto.Id);
                 }
-                catch (IOException ex)
-                {
-                    _logger.Log(LogLevel.Warning, ex.ToString());
-                }
-                await _userService.UpdateUser(userDto).ConfigureAwait(false);
-                return Ok(userDto.ToJson());
             }
-            catch (ValidationException ex)
+            catch (IOException ex)
             {
-                ModelState.AddModelError(ex.Property, ex.Message);
-                return NotFound(ModelState);
+                _logger.Log(LogLevel.Warning, ex.ToString());
             }
-            catch (ObjectNotFoundException ex)
-            {
-                ModelState.AddModelError(ex.Property, ex.Message);
-                return NotFound(ModelState);
-            }
-            catch(ArgumentNullException ex) 
-            {
-                ModelState.AddModelError(ex.ParamName, ex.Message);
-                return BadRequest(ModelState);
-            }
+            await _userService.UpdateUser(userDto).ConfigureAwait(false);
+            return Ok(userDto.ToJson());
         }
 
         // POST: api/User
@@ -151,26 +90,11 @@ namespace backend.Controllers
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<ActionResult<UserDto>> Create(UserDto userDto)
         {
-            if (ModelState.IsValid)
-            {
-                try
-                {
-                    var user = await _userService.CreateUser(userDto).ConfigureAwait(false);
-                    return CreatedAtAction(
-                                nameof(Create),
-                                new { id = user.Id },
-                                user);
-                }
-                catch (ValidationException ex)
-                {
-                    ModelState.AddModelError(ex.Property, ex.Message);
-                    return NotFound(ModelState);
-                }
-            }
-            else
-            {
-                return NotFound(ModelState);
-            }
+            var user = await _userService.CreateUser(userDto).ConfigureAwait(false);
+            return CreatedAtAction(
+                        nameof(Create),
+                        new { id = user.Id },
+                        user);
         }
 
         // DELETE: api/User/5
@@ -179,24 +103,16 @@ namespace backend.Controllers
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<IActionResult> Delete(long userId)
         {
+            await _userService.DeleteUser(userId).ConfigureAwait(false);
             try
             {
-                await _userService.DeleteUser(userId).ConfigureAwait(false);
-                try
-                {
-                    await _fileService.DeleteIdUserFolderAsync(userId);
-                }
-                catch (IOException ex)
-                {
-                    _logger.Log(LogLevel.Warning, ex.ToString());
-                }
-                return NoContent();
+                await _fileService.DeleteIdUserFolderAsync(userId);
             }
-            catch(ValidationException ex)
+            catch (IOException ex)
             {
-                ModelState.AddModelError(ex.Property, ex.Message);
-                return NotFound(ModelState);
+                _logger.Log(LogLevel.Warning, ex.ToString());
             }
+            return NoContent();
         }
 
         protected override void Dispose(bool disposing)

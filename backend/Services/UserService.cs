@@ -23,7 +23,7 @@ namespace backend.Services
         {
             try
             {
-                var user = _mapper.Map<UserDao>(userDto);
+                var user = _mapper.Map<UserDao>(userDto); 
                 await _dataStorage.Save(user);
                 return _mapper.Map<UserDto>(user);
             }
@@ -37,6 +37,7 @@ namespace backend.Services
         {
             return (await _dataStorage.Get())
                 .Where(x => x.IsDeleted == false)
+                .Include(u => u.PhoneNumber)
                 .Select(x => _mapper.Map<UserDto>(x))
                 .ToList();
         }
@@ -47,7 +48,10 @@ namespace backend.Services
             {
                 throw new ValidationException("Invalid value of Id.", "Id");
             }
-            var user = await _dataStorage.Get(id);
+            var user = (await _dataStorage.Get())
+                .Where(x => x.Id == id)
+                .Include(u => u.PhoneNumber).First();
+
             ValidationUserDoesNotExist(user);
             return _mapper.Map<UserDao, UserDto>(user);
         }

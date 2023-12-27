@@ -13,28 +13,37 @@ namespace backend.Models
     [Index(nameof(NickName), IsUnique = true)]
     public class UserDao 
     {
-        [Column("id")]
         public long Id { get; init; }
 
-        [Column("nickname")]
-        [BindRequired]//(ErrorMessage = "Username not specified")
-        [StringLength(128, MinimumLength = 2, ErrorMessage = "{0} numbers must be between {2} and {1} character in length.")]
+        [Required]
         public string NickName { get; set; } = null!;
 
-        [Column("phonenumber")]
-        [Required]
-        [RegularExpression(GlobalVariables.RegexPhonePattern, ErrorMessage = "Wrong phone number.")]
-        public string PhoneNumber { get; set; } = null!;
+        public UserPhone PhoneNumber { get; set; } = null!;
 
-        [Column("countryresidence")]
         public string? CountryResidence { get; set; }
 
-        [Column("avatarrelativepath")]
         public string? AvatarRelativePath { get; set; }
 
-        [Column("isdeleted")]
         [DefaultValue(false)]
         public bool IsDeleted { get; set; }
+
+        public UserDao()
+        {
+        }
+
+        public UserDao(string nickName, string phoneNumber)
+        {
+            if (string.IsNullOrEmpty(nickName))
+            {
+                throw new Infrastructure.ValidationException("Username not specified", "NickName");
+            }
+            else if (nickName.Length < 2 || nickName.Length > 128)
+            {
+                throw new Infrastructure.ValidationException("Length numbers must be between 2 and 128 character in length.", "NickName");
+            }
+            NickName = nickName;
+            PhoneNumber = new UserPhone(phoneNumber);
+        }
 
     }
 }

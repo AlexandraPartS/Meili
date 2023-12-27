@@ -12,7 +12,7 @@ namespace backend.Models
         public long Id { get; init; }
 
         [BindRequired]
-        [StringLength(128, MinimumLength = 2, ErrorMessage = "{0} numbers must be between {2} and {1} character in length.")] 
+        [StringLength(128, MinimumLength = 2, ErrorMessage = "{0} numbers must be between {2} and {1} character in length.")]
         public string NickName { get; set; } = null!;
 
         [BindRequired]

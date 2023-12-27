@@ -24,8 +24,16 @@ function updateItemManage() {
             },
             body: JSON.stringify(item)
         })
-            .then(() => getItems())
-            .catch(error => console.error('Unable to update item.', error));
+        .then(response => {
+            if (!response.ok) {
+                return response.text()
+                    .then(text => {
+                        throw new Error(text)
+                    })
+            }
+        })
+        .then(() => getItems())
+        .catch(error => console.error('Unable to update item.', error));
     }
     closeInput();
     return false;
@@ -60,7 +68,10 @@ function addItem() {
             if (response.ok) {
                 return response.json();
             }
-            throw new Error(response.status);
+            return response.json()
+                .then(text => {
+                    throw new Error(text)
+                })
         })
         .then(() => {
             getItems();

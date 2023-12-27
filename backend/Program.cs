@@ -5,12 +5,18 @@ using backend.Interfaces;
 using backend.Models;
 using backend.Infrastructure;
 using AutoMapper;
+using backend.Middleware;
 
 
 var builder = WebApplication.CreateBuilder(
       new WebApplicationOptions { WebRootPath = GlobalVariables.WebRootPath});
 
-Mapper mapperUser = new Mapper(new MapperConfiguration(cfg => cfg.CreateMap<UserDao, UserDto>().ReverseMap()));
+Mapper mapperUser = new Mapper(new MapperConfiguration(cfg =>
+{
+    cfg.CreateMap<UserDao, UserDto>()
+    .ForMember(d => d.PhoneNumber, opt => opt.MapFrom(src => src.PhoneNumber.PhoneNumber))
+    .ReverseMap();
+}));
 builder.Services.AddSingleton<Mapper>(mapperUser);
 
 builder.Services.AddControllers(opts =>
@@ -25,8 +31,13 @@ builder.Services.AddDbContext<UserContext>(opt => opt.UseNpgsql(builder.Configur
 
 var app = builder.Build();
 
+app.UseCustomExceptionHandler();
+
 app.UseDefaultFiles();
 app.UseStaticFiles();
 app.MapControllers();
 
 app.Run();
+
+
+

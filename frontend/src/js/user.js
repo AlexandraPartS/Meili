@@ -42,7 +42,7 @@ async function updateItem() {
     let formData = new FormData(formElem);
     let id = document.getElementById("userId").value;
 
-    if (avatarfile.value == "" && avatarfile.files[0] == null && avatarimage.src != '') {
+    if (avatarfile.value == "" && avatarfile.files.length!=0 && avatarimage.src != '') {
         let imageBlob = await fetch(avatarimage.src).then(r => r.blob());
         formData.append("image", imageBlob, "image.png");
     }
@@ -55,7 +55,10 @@ async function updateItem() {
             if (response.ok) {
                 return response.json()
             }
-            throw new Error(response.status);
+            return response.text()
+                .then(text => {
+                    throw new Error(text)
+                })
         })
         .then((text) => {
             getItem();
